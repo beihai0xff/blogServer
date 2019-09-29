@@ -4,10 +4,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	"net"
 	"os"
 )
 
 func main() {
+	err := os.Mkdir("./log", os.ModePerm)
 	f, err := os.Create("./log/test.log")
 	if err != nil {
 		panic(err)
@@ -29,6 +31,12 @@ func main() {
 		Root:  "blog/public",
 		HTML5: true,
 	}))
-	e.Logger.SetLevel(log.WARN)
+	e.Logger.SetLevel(log.ERROR)
+	l, err := net.Listen("tcp", ":80")
+	if err != nil {
+		e.Logger.Fatal(l)
+	}
+	e.Listener = l
+	e.Logger.Fatal(e.Start(""))
 	e.Logger.Error(e.StartTLS(":443", "server.crt", "server.key"))
 }
