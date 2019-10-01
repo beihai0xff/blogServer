@@ -4,19 +4,34 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
-	"net"
 	"os"
 )
 
 func main() {
 	err := os.Mkdir("./log", os.ModePerm)
-	f, err := os.Create("./log/test.log")
+	go func() {
+		f2, err := os.Create("./log/httpWarn.log")
+		if err != nil {
+			panic(err)
+		}
+		h := echo.New()
+		h.Pre(middleware.WWWRedirect())
+		h.Pre(middleware.AddTrailingSlash())
+		h.Pre(middleware.HTTPSRedirect())
+		h.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+			Output: f2,
+		}))
+		h.Logger.Warn(h.Start(":80"))
+	}()
+
+	f, err := os.Create("./log/httpsWarn.log")
 	if err != nil {
 		panic(err)
 	}
-	//logFile, _ := os.OpenFile("./log/test.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+
 	e := echo.New()
-	e.Pre(middleware.HTTPSRedirect())
+	e.Pre(middleware.WWWRedirect())
+	e.Pre(middleware.AddTrailingSlash())
 	e.Use(middleware.Recover())
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Output: f,
@@ -24,19 +39,10 @@ func main() {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
-
-	e.Pre(middleware.WWWRedirect())
-	e.Pre(middleware.AddTrailingSlash())
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Root:  "blog/public",
 		HTML5: true,
 	}))
-	e.Logger.SetLevel(log.ERROR)
-	l, err := net.Listen("tcp", ":80")
-	if err != nil {
-		e.Logger.Fatal(l)
-	}
-	e.Listener = l
-	e.Logger.Fatal(e.Start(""))
-	e.Logger.Error(e.StartTLS(":443", "server.crt", "server.key"))
+	e.Logger.SetLevel(log.WARN)
+	e.Logger.Warn(e.StartTLS(":443", "server.crt", "server.key"))
 }
