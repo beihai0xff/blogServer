@@ -17,6 +17,7 @@ func main() {
 		h := echo.New()
 		h.Pre(middleware.WWWRedirect())
 		h.Pre(middleware.AddTrailingSlash())
+		h.Use(middleware.Gzip())
 		h.Pre(middleware.HTTPSRedirect())
 		h.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 			Output: f2,
@@ -32,6 +33,7 @@ func main() {
 	e := echo.New()
 	e.Pre(middleware.WWWRedirect())
 	e.Pre(middleware.AddTrailingSlash())
+	e.Use(middleware.Gzip())
 	e.Use(middleware.Recover())
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Output: f,
@@ -44,5 +46,5 @@ func main() {
 		HTML5: true,
 	}))
 	e.Logger.SetLevel(log.WARN)
-	e.Logger.Warn(e.StartTLS(":443", "server.crt", "server.key"))
+	e.Logger.Warn(e.StartTLS(":443", "server.pem", "server.key"))
 }
