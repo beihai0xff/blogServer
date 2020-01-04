@@ -1,14 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/labstack/gommon/log"
 	"os"
 )
 
 func main() {
 	err := os.Mkdir("./log", os.ModePerm)
+	f, err := os.Create("./log/httpsWarn.log")
+	if err != nil {
+		panic(err)
+	}
 	go func() {
 		f2, err := os.Create("./log/httpWarn.log")
 		if err != nil {
@@ -25,11 +29,6 @@ func main() {
 		h.Logger.Warn(h.Start(":80"))
 	}()
 
-	f, err := os.Create("./log/httpsWarn.log")
-	if err != nil {
-		panic(err)
-	}
-
 	e := echo.New()
 	e.Pre(middleware.WWWRedirect())
 	e.Pre(middleware.AddTrailingSlash())
@@ -45,6 +44,6 @@ func main() {
 		Root:  "blog/public",
 		HTML5: true,
 	}))
-	e.Logger.SetLevel(log.WARN)
+	fmt.Printf("当前 PID 为：%d", os.Getpid())
 	e.Logger.Warn(e.StartTLS(":443", "server.pem", "server.key"))
 }
