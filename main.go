@@ -13,6 +13,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	// 返回 404 页面，https://github.com/labstack/echo/issues/671
+	echo.NotFoundHandler = func(c echo.Context) error {
+		// render your 404 page
+		return c.Inline("blog/public/404.html", "404.html")
+	}
 	go func() {
 		f2, err := os.Create("./log/httpWarn.log")
 		if err != nil {
