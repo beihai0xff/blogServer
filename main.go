@@ -18,16 +18,20 @@ func main() {
 		// render your 404 page
 		return c.Inline("blog/public/404.html", "404.html")
 	}
+	// 在一个协程里监听 HTTP 服务
 	go func() {
 		f2, err := os.Create("./log/httpWarn.log")
 		if err != nil {
 			panic(err)
 		}
 		h := echo.New()
-		h.Pre(middleware.WWWRedirect())
+		// 重定向：http://www.wingsxdu.com/ -> https://wingsxdu.com/
+		h.Pre(middleware.HTTPSNonWWWRedirect())
 		h.Pre(middleware.AddTrailingSlash())
 		h.Use(middleware.Gzip())
+		// 重定向：http://wingsxdu.com/ -> https://wingsxdu.com/
 		h.Pre(middleware.HTTPSRedirect())
+		// HTTP 服务的日志
 		h.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 			Output: f2,
 		}))
@@ -35,7 +39,8 @@ func main() {
 	}()
 
 	e := echo.New()
-	e.Pre(middleware.WWWRedirect())
+	// 重定向：https://www.wingsxdu.com/ -> https://wingsxdu.com/
+	e.Pre(middleware.NonWWWRedirect())
 	e.Pre(middleware.AddTrailingSlash())
 	e.Use(middleware.Gzip())
 	e.Use(middleware.Recover())
