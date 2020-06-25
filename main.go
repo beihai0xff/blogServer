@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"os"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"os"
+	"github.com/wingsxdu/tinyurl"
 )
 
 func main() {
@@ -54,6 +57,39 @@ func main() {
 		Root:  "blog/public",
 		HTML5: true,
 	}))
+	e.HTTPErrorHandler = customHTTPErrorHandler
+	tinyurl.New()
+	e.GET("/t/:tinyUrl", tinyurl.GetUrl)
+	e.POST("/t", tinyurl.PostUrl)
+	e.PUT("/t", tinyurl.PutUrl)
+	e.DELETE("/t", tinyurl.DeleteUrl)
 	fmt.Printf("当前 PID 为：%d", os.Getpid())
 	e.Logger.Warn(e.StartTLS(":443", "server.pem", "server.key"))
+}
+
+type httpError struct {
+	code int
+	Key  string `json:"error"`
+	Msg  string `json:"message"`
+}
+
+func customHTTPErrorHandler(err error, c echo.Context) {
+	c.Logger().Error(err)
+
+	var res = httpError{code: http.StatusInternalServerError, Key: "InternalServerError"}
+
+	if he, ok := err.(*echo.HTTPError); ok {
+		res.code = he.Code
+		res.Key = http.StatusText(res.code)
+		res.Msg = err.Error()
+	} else {
+		res.Msg = http.StatusText(res.code)
+	}
+
+	if !c.Response().Committed {
+		err := c.JSON(res.code, res)
+		if err != nil {
+			c.Logger().Error(err)
+		}
+	}
 }
