@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -11,7 +12,7 @@ import (
 )
 
 func main() {
-	err := os.Mkdir("./log", os.ModePerm)
+	err := os.Mkdir("./log/", os.ModePerm)
 	f, err := os.Create("./log/httpsWarn.log")
 	if err != nil {
 		panic(err)
@@ -30,7 +31,6 @@ func main() {
 		h := echo.New()
 		// 重定向：http://www.wingsxdu.com/ -> https://wingsxdu.com/
 		h.Pre(middleware.HTTPSNonWWWRedirect())
-		h.Pre(middleware.AddTrailingSlash())
 		h.Use(middleware.Gzip())
 		// 重定向：http://wingsxdu.com/ -> https://wingsxdu.com/
 		h.Pre(middleware.HTTPSRedirect())
@@ -44,7 +44,6 @@ func main() {
 	e := echo.New()
 	// 重定向：https://www.wingsxdu.com/ -> https://wingsxdu.com/
 	e.Pre(middleware.NonWWWRedirect())
-	e.Pre(middleware.AddTrailingSlash())
 	e.Use(middleware.Gzip())
 	e.Use(middleware.Recover())
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
@@ -54,8 +53,9 @@ func main() {
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
-		Root:  "blog/public",
-		HTML5: true,
+		Skipper: Skipper,
+		Root:    "blog/public",
+		HTML5:   true,
 	}))
 	e.HTTPErrorHandler = customHTTPErrorHandler
 	tinyurl.New()
@@ -92,4 +92,12 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 			c.Logger().Error(err)
 		}
 	}
+}
+
+func Skipper(c echo.Context) bool {
+	if strings.HasPrefix(c.Request().RequestURI, "/t") {
+		fmt.Println(c.Request().RequestURI)
+		return true
+	}
+	return false
 }
