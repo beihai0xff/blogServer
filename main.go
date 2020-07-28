@@ -8,7 +8,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/wingsxdu/tinyurl"
+	tinyUrl "github.com/wingsxdu/tinyurl/example/echo"
 )
 
 func main() {
@@ -58,11 +58,13 @@ func main() {
 		HTML5:   true,
 	}))
 	e.HTTPErrorHandler = customHTTPErrorHandler
-	tinyurl.New()
-	e.GET("/t/:tinyUrl", tinyurl.GetUrl)
-	e.POST("/t", tinyurl.PostUrl)
-	e.PUT("/t", tinyurl.PutUrl)
-	e.DELETE("/t", tinyurl.DeleteUrl)
+	tinyUrl.New()
+	// 获取 tinyUrl 指向的 url，但是不跳转
+	e.GET("/gett/:tinyUrl", tinyUrl.Gett)
+	e.GET("/t/:tinyUrl", tinyUrl.GetUrl)
+	e.POST("/t", tinyUrl.PostUrl)
+	e.PUT("/t", tinyUrl.PutUrl)
+	e.DELETE("/t", tinyUrl.DeleteUrl)
 	fmt.Printf("当前 PID 为：%d", os.Getpid())
 	e.Logger.Warn(e.StartTLS(":443", "server.pem", "server.key"))
 }
