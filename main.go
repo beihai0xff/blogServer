@@ -17,6 +17,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	fileWatcher, err := NewNotifyFile()
+	if err != nil {
+		panic(err)
+	}
+	fileWatcher.WatchDir("./blog/public/post")
 	// 返回 404 页面，https://github.com/labstack/echo/issues/671
 	echo.NotFoundHandler = func(c echo.Context) error {
 		// render your 404 page
@@ -66,7 +71,7 @@ func main() {
 	e.PUT("/t", tinyUrl.PutUrl)
 	e.DELETE("/t", tinyUrl.DeleteUrl)
 	fmt.Printf("当前 PID 为：%d", os.Getpid())
-	e.Logger.Warn(e.StartTLS(":443", "server.pem", "server.key"))
+	e.Logger.Warn(e.Start(":443"))
 }
 
 type httpError struct {
