@@ -1,4 +1,4 @@
-package main
+package webpushr
 
 import (
 	"fmt"
@@ -55,36 +55,38 @@ func (n *NotifyFile) WatchEvent() {
 		case ev := <-n.watch.Events:
 
 			if ev.Op&fsnotify.Create == fsnotify.Create {
-				fmt.Println("创建文件 : ", ev.Name)
 				// 获取新创建文件的信息，如果是目录，则加入监控中
 				file, err := os.Stat(ev.Name)
+				fmt.Println(ev.Name)
 				if err == nil && file.IsDir() {
 					n.watch.Add(ev.Name)
-					fmt.Println("添加监控 : ", ev.Name)
+				}
+				if file.Name() == "index.html" { // 有新文章发布，发送推送通知
+					err = webpush()
+					if err != nil {
+						fmt.Println(err)
+					}
 				}
 			}
 
 			if ev.Op&fsnotify.Write == fsnotify.Write {
-				fmt.Println("写入文件 : ", ev.Name)
+				continue
 			}
 
 			if ev.Op&fsnotify.Remove == fsnotify.Remove {
-				fmt.Println("删除文件 : ", ev.Name)
 				// 如果删除文件是目录，则移除监控
 				fi, err := os.Stat(ev.Name)
 				if err == nil && fi.IsDir() {
 					n.watch.Remove(ev.Name)
-					fmt.Println("删除监控 : ", ev.Name)
 				}
 			}
 
 			if ev.Op&fsnotify.Rename == fsnotify.Rename {
 				// 重命名文件或目录，直接 remove
-				fmt.Println("重命名文件 : ", ev.Name)
 				n.watch.Remove(ev.Name)
 			}
 			if ev.Op&fsnotify.Chmod == fsnotify.Chmod {
-				fmt.Println("修改权限 : ", ev.Name)
+				continue
 			}
 
 		case err := <-n.watch.Errors:

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"blogServer/webpushr"
 	"fmt"
 	"net/http"
 	"os"
@@ -17,11 +18,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fileWatcher, err := NewNotifyFile()
+	fileWatcher, err := webpushr.NewNotifyFile()
 	if err != nil {
 		panic(err)
 	}
 	fileWatcher.WatchDir("./blog/public/post")
+	err = webpushr.GetConfig("./config/conf.yaml")
+	if err != nil {
+		panic(err)
+	}
 	// 返回 404 页面，https://github.com/labstack/echo/issues/671
 	echo.NotFoundHandler = func(c echo.Context) error {
 		// render your 404 page
