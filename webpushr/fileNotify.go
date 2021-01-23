@@ -22,10 +22,14 @@ func NewNotifyFile() (*NotifyFile, error) {
 
 // 监控目录
 func (n *NotifyFile) WatchDir(dir string) {
+	err := PathExists(dir)
+	if err != nil {
+		panic(err)
+	}
 	// 遍历目录下的所有子目录
 
 	// 使用 filepath.Walk() 在目录较大时性能较低，且不会释放文件描述符，容易发生 fcntl: too many open files 错误
-	// linux 下进程默认最大 fd 为 1024，目前约为300多个，未来再改吧
+	// linux 下进程默认最大 fd 为 1024，目前约为 300 多个，未来再改吧
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		// 判断是否为目录，若是则监控目录
 		if err != nil {
@@ -49,6 +53,7 @@ func (n *NotifyFile) WatchDir(dir string) {
 	go n.WatchEvent()
 }
 
+// 开启监控时间
 func (n *NotifyFile) WatchEvent() {
 	for {
 		select {
@@ -57,14 +62,18 @@ func (n *NotifyFile) WatchEvent() {
 			if ev.Op&fsnotify.Create == fsnotify.Create {
 				// 获取新创建文件的信息，如果是目录，则加入监控中
 				file, err := os.Stat(ev.Name)
-				fmt.Println(ev.Name)
 				if err == nil && file.IsDir() {
 					n.watch.Add(ev.Name)
 				}
 				if file.Name() == "index.html" { // 有新文章发布，发送推送通知
-					err = webpush()
+					// 获取文章信息
+					info, err := query(file.Name())
 					if err != nil {
-						fmt.Println(err)
+						panic(err)
+					}
+					err = webpush(info)
+					if err != nil {
+						panic(err)
 					}
 				}
 			}

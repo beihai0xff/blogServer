@@ -16,19 +16,20 @@ type webpushConfig struct {
 
 var conf = webpushConfig{}
 
+// 从 yaml 文件获取 webpushr 的授权验证信息
 func GetConfig(path string) error {
 	yamlFile, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
 	}
-
 	err = yaml.Unmarshal(yamlFile, &conf)
 	return err
 }
 
-func webpush() error {
+// 发起一次 webpushr 推送
+func webpush(info pageInfo) error {
 	client := &http.Client{}
-	var data = strings.NewReader(`{"title":"beihai blog","message":"新文章发布","target_url":"https://www.wingsxdu.com"}`)
+	var data = strings.NewReader(fmt.Sprintf(`{"title":"beihai blog","message":"%s","target_url":"%s"}`, info.title, info.url))
 	req, err := http.NewRequest("POST", "https://api.webpushr.com/v1/notification/send/all", data)
 	if err != nil {
 		return err
