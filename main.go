@@ -76,7 +76,7 @@ func main() {
 	e.PUT("/t", tinyUrl.PutUrl)
 	e.DELETE("/t", tinyUrl.DeleteUrl)
 	fmt.Printf("当前 PID 为：%d", os.Getpid())
-	e.Logger.Warn(e.Start(":443"))
+	e.Logger.Warn(e.StartTLS(":443", "./config/server.pem", "./config/server.key"))
 }
 
 type httpError struct {

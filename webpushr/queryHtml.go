@@ -11,6 +11,7 @@ type pageInfo struct {
 	url   string
 }
 
+// 获取文章 title 和 url
 func query(filepath string) (pageInfo, error) {
 	var p pageInfo
 	err := PathExists(filepath)
