@@ -29,8 +29,8 @@ build_test:
 		$(GOBUILD) -v -o $(BINARY_NAME_TEST) -tags=jsoniter .
 
 deployment:
-		cp $(BINARY_NAME) ~/
-		cd ~/
+		cp $(BINARY_NAME) ~
+		cd ~
 		nohup ./blogServer
 
 test:
