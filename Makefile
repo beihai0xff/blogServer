@@ -30,6 +30,7 @@ build_test:
 
 deployment:
 		cp $(BINARY_NAME) ~/
+		cd ~/
 		nohup ./blogServer
 
 test:
