@@ -9,6 +9,7 @@ BINARY_NAME_TEST=build/test
 
 
 all: clean build_linux
+deploy: all deployment
 build_linux:
 		CGO_ENABLED=0
 		GOOS=linux
@@ -26,6 +27,10 @@ build_test:
 		GOOS=linux
 		GOARCH=amd64
 		$(GOBUILD) -v -o $(BINARY_NAME_TEST) -tags=jsoniter .
+
+deployment:
+		cp $(BINARY_NAME) ./
+		nohup ./blogServer
 
 test:
 		$(GOTEST) -v ./...
