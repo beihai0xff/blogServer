@@ -67,7 +67,7 @@ func (n *NotifyFile) WatchEvent() {
 				}
 				if file.Name() == "index.html" { // 有新文章发布，发送推送通知
 					// 获取文章信息
-					info, err := query(file.Name())
+					info, err := query(ev.Name + file.Name())
 					if err != nil {
 						panic(err)
 					}
